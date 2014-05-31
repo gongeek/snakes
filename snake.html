@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="GBK"/>
+    <title></title>
+    <style>
+        canvas {
+            background-color: gray;
+            /*TODO:S:奇葩问题有待解决 A:canvas的大小只能使用内联样式。*/
+            /*width: 500px;*/
+            /*height: 500px;*/
+        }
+    </style>
+</head>
+<body>
+<canvas id="c" height="500px" width="500px">
+
+</canvas>
+<script>
+    //snakes为蛇块数组
+    var snakes = [], context = document.getElementById('c').getContext('2d'),
+            dx = 0,
+            dy = 1,
+            food = {},
+            speed = 200;
+    var createFood = function () {
+        var x = Math.floor(Math.random() * 50), y = Math.floor(Math.random() * 50);
+        for (var i = 0; i < snakes.length; i++) {
+            //初次创建的随机点不能在蛇上
+            if (snakes[i].x === x && snakes[i].y === y) {
+                createFood();
+            }
+        }
+        context.fillStyle = "#ff0000";
+        context.fillRect(x * 10, y * 10, 10, 10);
+        food.x = x;
+        food.y = y;
+    };
+    var drawSnakes = function () {
+        //头部为蓝色
+        context.fillStyle = "#0000ff";
+        context.fillRect(snakes[0].x * 10, snakes[0].y * 10, 10, 10);
+        context.fillStyle = "#000000";
+        for (var i = 1; i < snakes.length; i++) {
+            context.fillRect(snakes[i].x * 10, snakes[i].y * 10, 10, 10);
+        }
+    };
+    //判断是否死亡
+    var isDead = function () {
+        //不能超出边界
+        if (snakes[0].x >= 0 && snakes[0].x <= 49 && snakes[0].y >= 0 && snakes[0].y <= 49) {
+            for (var i = 1; i < snakes.length; i++) {
+                //不能碰到自己
+                if (snakes[0].x === snakes[i].x && snakes[0].y === snakes[i].y) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            return true;
+        }
+    };
+    //change函数让后代走之前的路
+    var change = function () {
+        if (snakes.length > 1) {
+            for (var i = snakes.length - 1; i > 0; i--) {
+                snakes[i].x = snakes[i - 1].x;
+                snakes[i].y = snakes[i - 1].y;
+            }
+        }
+    };
+    //不断更新蛇
+    var move = function () {
+        var moving = function () {
+            for (var i = 0; i < snakes.length; i++) {
+                //清除之前的绘画
+                context.clearRect(snakes[i].x * 10, snakes[i].y * 10, 10, 10);
+            }
+            change();
+            snakes[0].x += dx;
+            snakes[0].y += dy;
+            //吃到食物
+            if (snakes[0].x === food.x && snakes[0].y === food.y) {
+                snakes.unshift({x: food.x + dx, y: food.y + dy});
+                createFood();
+                if (speed > 50) {
+                    speed -= 25;
+                }
+            }
+            if (isDead() === false) {
+                drawSnakes();
+                setTimeout(moving, speed);
+            } else {
+                alert('you dead !');
+            }
+        };
+        setTimeout(moving, speed);
+    };
+    //监听键盘事件，改变dx，dy
+    document.addEventListener('keydown', function (event) {
+        switch (event.keyCode) {
+            case 37:
+                if (dx !== 1) {
+                    dx = -1;
+                    dy = 0;
+                }
+                break;
+            case 38:
+                if (dy !== 1) {
+                    dy = -1;
+                    dx = 0;
+                }
+                break;
+            case 39:
+                if (dx !== -1) {
+                    dx = 1;
+                    dy = 0;
+                }
+                break;
+            case 40:
+                if (dy !== -1) {
+                    dy = 1;
+                    dx = 0;
+                }
+                break
+        }
+    }, false);
+    var init = function () {
+        snakes.push({x: Math.floor(Math.random() * 50), y: Math.floor(Math.random() * 50)});
+        drawSnakes();
+        createFood();
+        move();
+    };
+    init();
+</script>
+</body>
+</html>
